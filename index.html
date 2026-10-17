@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Ramadas.net</title>
+        <meta name="description" content="Open software, power to the people." />
+        <meta name="theme-color" content="#000000" />
+        <meta property="og:title" content="Ramadas.net" />
+        <meta property="og:description" content="Open software, power to the people." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.ramadas.net" />
+        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <style>
+            :root {
+                --ink: #000;
+                --paper: #fff;
+                --dim: #a1a1a1;
+                --quiet: #757575;
+                --line: rgba(255, 255, 255, 0.16);
+                --sans: Geist, "Geist Variable", system-ui, sans-serif;
+                --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                height: 100%;
+                background: var(--ink);
+                color: var(--paper);
+                font-family: var(--sans);
+                color-scheme: dark;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            body {
+                overflow: hidden;
+            }
+
+            canvas {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+
+            canvas.pass {
+                z-index: 0;
+                pointer-events: none;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            a:focus-visible {
+                outline: 1px solid currentColor;
+                outline-offset: 3px;
+            }
+
+            .beacons {
+                position: fixed;
+                z-index: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                margin-top: 20px;
+                opacity: 1;
+            }
+
+            .beacons.is-ready {
+                transition:
+                    opacity 0.4s ease,
+                    top 0.7s cubic-bezier(0.22, 0.8, 0.28, 1),
+                    left 0.7s cubic-bezier(0.22, 0.8, 0.28, 1);
+            }
+
+            .beacons.is-resizing {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.16s ease;
+            }
+
+            .beacon {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                color: var(--c);
+                font-family: var(--mono);
+                font-size: 13px;
+                line-height: 1;
+                letter-spacing: 0.06em;
+                text-transform: lowercase;
+            }
+
+            .beacon svg {
+                display: block;
+                flex: none;
+            }
+
+            .beacon .go {
+                opacity: 0.7;
+                transform: translate(0, 0);
+                transition:
+                    transform 0.25s ease,
+                    opacity 0.25s ease;
+            }
+
+            .beacon:hover .go,
+            .beacon:focus-visible .go {
+                opacity: 1;
+                transform: translate(2px, -2px);
+            }
+
+            .note {
+                position: absolute;
+                left: calc(100% + 12px);
+                top: 50%;
+                z-index: 2;
+                box-sizing: content-box;
+                width: max-content;
+                max-width: none;
+                margin: 0;
+                padding: 6px 14px 6px 12px;
+                border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+                border-radius: 4px;
+                background: #071422;
+                color: #d5e4f4;
+                font-family: var(--sans);
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 1.6;
+                letter-spacing: -0.01em;
+                text-transform: none;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(-50%) translateX(-8px);
+                transition:
+                    opacity 0.28s ease,
+                    transform 0.38s cubic-bezier(0.2, 0.75, 0.2, 1);
+            }
+
+            .note::before {
+                content: "";
+                position: absolute;
+                left: -5px;
+                top: 50%;
+                width: 7px;
+                height: 7px;
+                background: #071422;
+                border-left: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+                border-bottom: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+                transform: translateY(-50%) rotate(45deg);
+            }
+
+            .note ul {
+                padding: 0;
+                margin: 0 0 0 10px;
+            }
+
+            .beacon:hover .note,
+            .beacon:focus-visible .note {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+
+            .bar {
+                position: fixed;
+                z-index: 2;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 24px;
+                min-height: 76px;
+                padding: 16px 22px;
+                background: #06101c;
+                border-top: 1px solid rgba(120, 168, 230, 0.16);
+            }
+
+            .dock {
+                display: flex;
+                align-items: flex-start;
+                gap: 22px;
+            }
+
+            .brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                height: 28px;
+                color: var(--paper);
+                font-size: 18px;
+                font-weight: 500;
+                letter-spacing: -0.03em;
+            }
+
+            .brand svg {
+                display: block;
+                flex: none;
+            }
+
+            .mail:hover {
+                color: var(--paper);
+            }
+
+            .mail {
+                color: var(--quiet);
+                font-family: var(--mono);
+                font-size: 11px;
+                letter-spacing: 0.06em;
+            }
+
+            .legal {
+                margin: 0;
+                color: var(--dim);
+                font-family: var(--mono);
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+
+            .soon {
+                font-style: italic;
+            }
+
+            .imprint {
+                --c: #7eb6ff;
+                margin-left: 14px;
+                color: var(--dim);
+                text-decoration: underline;
+                text-decoration-color: var(--line);
+                text-underline-offset: 3px;
+            }
+
+            .imprint:hover,
+            .imprint:focus-visible {
+                color: var(--paper);
+            }
+
+            /* Anchored to .bar (nearest positioned ancestor), opens upwards */
+            .imprint .card {
+                top: auto;
+                left: auto;
+                right: 22px;
+                bottom: calc(100% + 12px);
+                padding: 12px 16px;
+                line-height: 1.5;
+                transform: translateY(8px);
+            }
+
+            .imprint .card::before {
+                top: auto;
+                left: auto;
+                right: 26px;
+                bottom: -5px;
+                transform: rotate(-45deg);
+            }
+
+            .imprint .card > span,
+            .imprint .card strong {
+                display: block;
+            }
+
+            .imprint .card strong {
+                color: var(--paper);
+                font-weight: 500;
+            }
+
+            .imprint .card .gap {
+                margin-top: 10px;
+            }
+
+            .imprint:hover .card,
+            .imprint:focus .card {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            @media (max-width: 720px) {
+                .bar {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 14px;
+                    padding: 16px;
+                }
+
+                .dock {
+                    flex-direction: column;
+                    gap: 14px;
+                }
+
+                .legal {
+                    white-space: normal;
+                }
+
+                .imprint .card {
+                    right: auto;
+                    left: 16px;
+                }
+
+                .imprint .card::before {
+                    display: none;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .beacons,
+                .beacon .go,
+                .note {
+                    transition: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="sky" aria-hidden="true"></canvas>
+        <canvas id="pass" class="pass" aria-hidden="true"></canvas>
+
+        <nav class="beacons" aria-label="GitHub">
+            <a class="beacon" style="--c: #3ee0c8" href="https://github.com/igoramadas" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path
+                        fill="currentColor"
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
+                    />
+                </svg>
+                @igoramadas
+                <span class="go" aria-hidden="true">↗</span>
+                <span class="note">Igor's personal tools, libraries and software toys.</span>
+            </a>
+            <a class="beacon" style="--c: #9aa8ff" href="https://github.com/ramadasnet" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path
+                        fill="currentColor"
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
+                    />
+                </svg>
+                @ramadasnet
+                <span class="go" aria-hidden="true">↗</span>
+                <span class="note">
+                    <ul>
+                        <li>PlaylistSyncer <span class="app-info">Your music playlists, everywhere</span></li>
+                        <li>Strautomator <span class="app-info">Turbocharge your Strava experience</span></li>
+                        <li>LastWords.my <span class="soon">coming soon</span></li>
+                        <li>Saidatela <span class="soon">coming soon</span></li>
+                        <li>VHSFamily <span class="soon">coming soon</span></li>
+                    </ul>
+                </span>
+            </a>
+            <a class="beacon" style="--c: #7eb6ff" href="https://github.com/ramadasnet" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path
+                        fill="currentColor"
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
+                    />
+                </svg>
+                @theoldstuff
+                <span class="go" aria-hidden="true">↗</span>
+                <span class="note">Interested? Feel free to take ownership.</span>
+            </a>
+        </nav>
+
+        <footer class="bar">
+            <div class="dock">
+                <a class="brand" href="/" aria-label="Ramadas.net">
+                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                        <path fill="currentColor" d="M2.4 16.8c2.4-7.2 16.8-7.2 19.2 0h-3.4c-1.4-4.1-11-4.1-12.4 0H2.4z" />
+                        <rect x="10.35" y="3.6" width="3.3" height="3.3" rx="0.4" fill="currentColor" />
+                    </svg>
+                    Ramadas.net
+                </a>
+            </div>
+
+            <p class="legal">
+                Open software, power to the people
+                <a class="imprint" href="#impressum">
+                    Impressum
+                    <span class="note card" id="impressum">
+                        <strong>Igor Ramadas Leite Nogueira</strong>
+                        <span>Software Engineer</span>
+                        <span>Einzelunternehmen</span>
+                        <span>Business ID: DE454468590</span>
+                        <span class="gap">Straße 18 16</span>
+                        <span>13089 Berlin</span>
+                        <span>Germany</span>
+                        <span class="gap">info@ramadas.net</span>
+                    </span>
+                </a>
+            </p>
+        </footer>
+
+        <script type="module">
+            const canvas = document.getElementById("sky")
+            const ctx = canvas.getContext("2d", {alpha: false})
+            const beacons = document.querySelector(".beacons")
+            let timer = 0
+
+            const mulberry32 = (seed) => {
+                let state = seed >>> 0
+                return () => {
+                    state = (state + 0x6d2b79f5) | 0
+                    let t = Math.imul(state ^ (state >>> 15), 1 | state)
+                    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+                    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+                }
+            }
+
+            const geometry = (w, h) => {
+                const narrow = w < 760
+                const lx = w * (narrow ? 0.82 : 0.64)
+                const ly = h * (narrow ? 0.34 : 0.58)
+                const half = Math.hypot(lx, ly) / 2
+                const radius = half * (narrow ? 2.05 : 2.35)
+                const nx = -ly
+                const ny = -lx
+                const len = Math.hypot(nx, ny) || 1
+                const lift = Math.sqrt(Math.max(radius * radius - half * half, 0))
+                return {
+                    cx: lx / 2 + (nx / len) * lift,
+                    cy: ly / 2 + (ny / len) * lift,
+                    radius
+                }
+            }
+
+            const plot = (data, width, height, px, py, r, g, b) => {
+                const x = px | 0
+                const y = py | 0
+                if (x < 0 || y < 0 || x >= width || y >= height) return
+                const i = (y * width + x) * 4
+                data[i] = r
+                data[i + 1] = g
+                data[i + 2] = b
+                data[i + 3] = 255
+            }
+
+            const worldHits = (cx, cy, radius, box) => {
+                const x = Math.max(box.left, Math.min(cx, box.right))
+                const y = Math.max(box.top, Math.min(cy, box.bottom))
+                return Math.hypot(x - cx, y - cy) < radius
+            }
+
+            const worldVisible = (cx, cy, radius, w, h) => {
+                const x = Math.max(0, Math.min(cx, w))
+                const y = Math.max(0, Math.min(cy, h))
+                return Math.hypot(x - cx, y - cy) < radius - 8
+            }
+
+            const layout = (w, h) => {
+                const barH = document.querySelector(".bar")?.offsetHeight ?? 76
+                const left = w < 760 ? 16 : 28
+                const beaconW = Math.max(beacons.offsetWidth, 140)
+                const beaconH = beacons.offsetHeight || 72
+                const gap = 22
+                const floorTop = Math.max(16, h - barH - 18 - beaconH)
+                const natural = geometry(w, h)
+                let limb = -Infinity
+                for (let px = left; px <= left + beaconW; px += 6) {
+                    const span = natural.radius ** 2 - (px - natural.cx) ** 2
+                    if (span <= 0) continue
+                    limb = Math.max(limb, natural.cy + Math.sqrt(span))
+                }
+                let top = Number.isFinite(limb) ? limb + gap : floorTop
+                top = Math.min(Math.max(top, 16), floorTop)
+
+                const boxFor = (beaconTop) => ({
+                    left: left - 8,
+                    top: beaconTop - 10,
+                    right: left + beaconW + 10,
+                    bottom: beaconTop + beaconH + 8
+                })
+
+                let world = natural
+                if (worldHits(world.cx, world.cy, world.radius, boxFor(top))) {
+                    top = floorTop
+                    const box = boxFor(top)
+                    let shift = 0
+                    let cleared = null
+                    const maxShift = Math.max(w, h) * 1.5
+                    while (shift <= maxShift) {
+                        const trial = {cx: natural.cx - shift * 0.22, cy: natural.cy - shift, radius: natural.radius}
+                        if (!worldHits(trial.cx, trial.cy, trial.radius, box)) {
+                            cleared = worldVisible(trial.cx, trial.cy, trial.radius, w, h) ? trial : null
+                            break
+                        }
+                        shift += 32
+                    }
+                    world = cleared
+                }
+
+                return {world, spot: {left, top: Math.round(top)}}
+            }
+
+            const paint = (viewW = window.innerWidth, viewH = window.innerHeight, quality = "full") => {
+                const dpr = quality === "draft" ? 1 : Math.min(window.devicePixelRatio || 1, 2)
+                const step = quality === "draft" ? 2 : 1
+                const w = window.innerWidth
+                const h = window.innerHeight
+                const width = Math.floor(w * dpr)
+                const height = Math.floor(h * dpr)
+                canvas.width = width
+                canvas.height = height
+
+                const fitted = layout(viewW, viewH).world ?? {cx: -1e6, cy: -1e6, radius: 0}
+                const cx = fitted.cx * dpr
+                const cy = fitted.cy * dpr
+                const radius = fitted.radius * dpr
+                const rng = mulberry32(20261006)
+
+                const image = ctx.createImageData(width, height)
+                const {data} = image
+                const dot = (px, py, r, g, b) => plot(data, width, height, px, py, r, g, b)
+
+                const yStart = Math.max(0, Math.floor(cy - radius - 4))
+                const yEnd = Math.min(height, Math.ceil(cy + radius + 4))
+
+                for (let y = yStart; y < yEnd; y += step) {
+                    const span = radius * radius - (y - cy) ** 2
+                    if (span <= 0) continue
+                    const half = Math.sqrt(span)
+                    const xStart = Math.max(0, Math.floor(cx - half - 3))
+                    const xEnd = Math.min(width, Math.ceil(cx + half + 3))
+                    for (let x = xStart; x < xEnd; x += step) {
+                        const outside = Math.hypot(x - cx, y - cy) - radius
+                        if (outside > 2.5) continue
+                        const roll = rng()
+                        if (outside > -1.8) {
+                            if (roll < 0.62) dot(x, y, roll < 0.3 ? 214 : 72, roll < 0.3 ? 232 : 148, 255)
+                            continue
+                        }
+                        if (roll > 0.4) continue
+                        if (roll > 0.34) dot(x, y, 96, 140, 196)
+                        else if (roll > 0.22) dot(x, y, 28, 52, 104)
+                        else if (roll > 0.08) dot(x, y, 14, 28, 64)
+                        else dot(x, y, 6, 14, 36)
+                    }
+                }
+
+                const voidCount = Math.floor((w * h) / 1700)
+                for (let n = 0; n < voidCount; n++) {
+                    const x = rng() * width
+                    const y = rng() * height
+                    const dist = Math.hypot(x - cx, y - cy)
+                    if (dist < radius + 2) continue
+                    const near = Math.exp(-(dist - radius) / (radius * 0.2))
+                    const roll = rng()
+                    if (near > 0.62 && roll > 0.45) dot(x, y, 140, 186, 240)
+                    else if (roll > 0.94) dot(x, y, 255, 255, 255)
+                    else dot(x, y, 120, 120, 120)
+                }
+
+                ctx.putImageData(image, 0, 0)
+                if (fitted.radius <= 0) return
+                ctx.beginPath()
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+                ctx.strokeStyle = "#c5dcff"
+                ctx.lineWidth = Math.max(1.25, dpr * 1.05)
+                ctx.stroke()
+            }
+
+            const beaconSpot = () => layout(window.innerWidth, window.innerHeight).spot
+
+            const placeBeacons = () => {
+                const spot = beaconSpot()
+                beacons.style.left = `${spot.left}px`
+                beacons.style.top = `${spot.top}px`
+            }
+
+            const pass = () => {
+                if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+                const layer = document.getElementById("pass")
+                const lctx = layer.getContext("2d")
+                const rng = mulberry32(Date.now() ^ (Math.random() * 0x7fffffff))
+                const comets = []
+
+                const spawn = (comet, corner) => {
+                    const w = window.innerWidth
+                    const h = window.innerHeight
+                    const pick = corner ?? Math.floor(rng() * 4)
+                    const fromLeft = pick % 2 === 0
+                    const fromTop = pick < 2
+                    const speed = 28 + rng() * 18
+                    comet.vx = (fromLeft ? 1 : -1) * speed
+                    comet.y0 = fromTop ? -32 : h + 32
+                    const targetY = fromTop ? h * (0.42 + rng() * 0.4) : h * (0.1 + rng() * 0.38)
+                    comet.vy = ((targetY - comet.y0) / (w + 80)) * speed
+                    comet.tail = 90 + rng() * 70
+                    comet.x = fromLeft ? -40 : w + 40
+                    comet.y = comet.y0
+                    comet.bow = (rng() - 0.5) * 110
+                    const closing = rng() > 0.5
+                    comet.z0 = closing ? 0.38 : 2.05
+                    comet.z1 = closing ? 2.15 : 0.36
+                }
+
+                for (let i = 0; i < 3; i++) {
+                    const comet = {}
+                    spawn(comet, i)
+                    const hold = i * (3.2 + rng() * 2.4)
+                    comet.x -= comet.vx * hold
+                    comet.y0 -= comet.vy * hold
+                    comet.y = comet.y0
+                    comets.push(comet)
+                }
+
+                let last = performance.now()
+                let running = true
+
+                const frame = (now) => {
+                    if (!running) return
+                    const dt = Math.min(0.05, (now - last) / 1000)
+                    last = now
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+                    const w = window.innerWidth
+                    const h = window.innerHeight
+                    const width = Math.floor(w * dpr)
+                    const height = Math.floor(h * dpr)
+                    if (layer.width !== width || layer.height !== height) {
+                        layer.width = width
+                        layer.height = height
+                    }
+                    lctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+                    lctx.clearRect(0, 0, w, h)
+                    lctx.lineCap = "round"
+
+                    for (const comet of comets) {
+                        comet.x += comet.vx * dt
+                        comet.y0 += comet.vy * dt
+                        const span = w + comet.tail * 2
+                        const travel = Math.max(0, Math.min(1, comet.vx > 0 ? (comet.x + comet.tail) / span : (w - comet.x + comet.tail) / span))
+                        const eased = travel * travel * (3 - 2 * travel)
+                        comet.y = comet.y0 + comet.bow * Math.sin(travel * Math.PI)
+                        const scale = comet.z0 + (comet.z1 - comet.z0) * eased
+                        const tail = comet.tail * scale
+                        const mag = Math.hypot(comet.vx, comet.vy) || 1
+                        const x2 = comet.x - (comet.vx / mag) * tail
+                        const y2 = comet.y - (comet.vy / mag) * tail * 0.35 - comet.bow * 0.08 * scale
+                        const head = 5.5 * scale
+                        const bright = 0.55 + scale * 0.35
+                        const streak = lctx.createLinearGradient(comet.x, comet.y, x2, y2)
+                        streak.addColorStop(0, `rgba(255,255,255,${bright})`)
+                        streak.addColorStop(0.14, `rgba(198,224,255,${bright * 0.42})`)
+                        streak.addColorStop(1, "rgba(198,224,255,0)")
+                        lctx.strokeStyle = streak
+                        lctx.lineWidth = 1.15 * scale
+                        lctx.beginPath()
+                        lctx.moveTo(comet.x, comet.y)
+                        lctx.lineTo(x2, y2)
+                        lctx.stroke()
+                        const glow = lctx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, head)
+                        glow.addColorStop(0, `rgba(255,255,255,${Math.min(1, bright)})`)
+                        glow.addColorStop(0.45, `rgba(186,216,255,${0.22 * scale})`)
+                        glow.addColorStop(1, "rgba(186,216,255,0)")
+                        lctx.fillStyle = glow
+                        lctx.beginPath()
+                        lctx.arc(comet.x, comet.y, head, 0, Math.PI * 2)
+                        lctx.fill()
+                        if ((comet.vx > 0 && comet.x > w + 20) || (comet.vx < 0 && comet.x < -20)) spawn(comet)
+                    }
+                    window.requestAnimationFrame(frame)
+                }
+
+                document.addEventListener("visibilitychange", () => {
+                    if (document.hidden) {
+                        running = false
+                        return
+                    }
+                    if (!running) {
+                        running = true
+                        last = performance.now()
+                        window.requestAnimationFrame(frame)
+                    }
+                })
+                window.requestAnimationFrame(frame)
+            }
+
+            const view = {w: window.innerWidth, h: window.innerHeight}
+            const target = {w: view.w, h: view.h}
+            let easing = false
+            let settle = false
+            const motionOk = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+            const revealBeacons = () => {
+                const spot = beaconSpot()
+                beacons.classList.remove("is-resizing")
+                window.requestAnimationFrame(() => {
+                    beacons.style.left = `${spot.left}px`
+                    beacons.style.top = `${spot.top}px`
+                })
+            }
+
+            const easeWorld = () => {
+                view.w += (target.w - view.w) * 0.16
+                view.h += (target.h - view.h) * 0.16
+                const done = Math.abs(target.w - view.w) < 0.6 && Math.abs(target.h - view.h) < 0.6
+                if (done) {
+                    view.w = target.w
+                    view.h = target.h
+                }
+                paint(view.w, view.h, done ? "full" : "draft")
+                if (!done) {
+                    window.requestAnimationFrame(easeWorld)
+                    return
+                }
+                easing = false
+                if (settle) {
+                    settle = false
+                    revealBeacons()
+                }
+            }
+
+            window.addEventListener("resize", () => {
+                target.w = window.innerWidth
+                target.h = window.innerHeight
+                beacons.classList.add("is-resizing")
+                window.clearTimeout(timer)
+                if (!motionOk) {
+                    timer = window.setTimeout(() => {
+                        view.w = target.w
+                        view.h = target.h
+                        paint()
+                        placeBeacons()
+                        beacons.classList.remove("is-resizing")
+                    }, 160)
+                    return
+                }
+                if (!easing) {
+                    easing = true
+                    window.requestAnimationFrame(easeWorld)
+                }
+                timer = window.setTimeout(() => {
+                    if (easing) settle = true
+                    else revealBeacons()
+                }, 180)
+            })
+
+            paint()
+            placeBeacons()
+            window.requestAnimationFrame(() => beacons.classList.add("is-ready"))
+            pass()
+        </script>
+    </body>
+</html>

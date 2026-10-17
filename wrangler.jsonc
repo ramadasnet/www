@@ -1,0 +1,12 @@
+{
+    "name": "ramadas-net",
+    "compatibility_date": "2026-10-17",
+    "workers_dev": false,
+    "assets": {
+        "directory": "."
+    },
+    "routes": [
+        {"pattern": "ramadas.net", "custom_domain": true},
+        {"pattern": "www.ramadas.net", "custom_domain": true}
+    ]
+}

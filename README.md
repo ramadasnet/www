@@ -1,2 +1,3 @@
-# www
-www.ramadas.net
+# Ramadas.net
+
+Open source, power to the people.
