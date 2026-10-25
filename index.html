@@ -93,20 +93,83 @@
 
             .beacon {
                 position: relative;
-                display: inline-flex;
+                display: block;
+                min-width: 210px;
+                padding: 11px 16px 10px;
+                border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+                border-radius: 6px;
+                background: rgba(7, 20, 34, 0.85);
+                transition:
+                    border-color 0.25s ease,
+                    background-color 0.25s ease;
+            }
+
+            .beacon:hover,
+            .beacon:focus-visible {
+                border-color: color-mix(in srgb, var(--c) 85%, transparent);
+                background-color: #0a1c2e;
+            }
+
+            .beacon .name {
+                display: flex;
                 align-items: center;
-                gap: 7px;
+                gap: 8px;
                 color: var(--c);
                 font-family: var(--mono);
                 font-size: 13px;
                 line-height: 1;
                 letter-spacing: 0.06em;
-                text-transform: lowercase;
             }
 
-            .beacon svg {
-                display: block;
+            .beacon .name::before {
+                content: "";
                 flex: none;
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: var(--c);
+                box-shadow: 0 0 7px var(--c);
+            }
+
+            .beacon .tag {
+                display: block;
+                margin-top: 7px;
+                color: #a9bcd2;
+                font-size: 12px;
+                letter-spacing: -0.01em;
+            }
+
+            .beacon .url {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-top: 9px;
+                color: var(--quiet);
+                font-family: var(--mono);
+                font-size: 10px;
+                letter-spacing: 0.1em;
+            }
+
+            .orgs {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                align-self: center;
+                gap: 6px 16px;
+                font-family: var(--mono);
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .orgs a {
+                color: var(--dim);
+                transition: color 0.25s ease;
+            }
+
+            .orgs a:hover,
+            .orgs a:focus-visible {
+                color: var(--paper);
             }
 
             .beacon .go {
@@ -163,17 +226,6 @@
                 border-left: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
                 border-bottom: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
                 transform: translateY(-50%) rotate(45deg);
-            }
-
-            .note ul {
-                padding: 0;
-                margin: 0 0 0 10px;
-            }
-
-            .beacon:hover .note,
-            .beacon:focus-visible .note {
-                opacity: 1;
-                transform: translateY(-50%) translateX(0);
             }
 
             .bar {
@@ -233,10 +285,6 @@
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 white-space: nowrap;
-            }
-
-            .soon {
-                font-style: italic;
             }
 
             .imprint {
@@ -332,47 +380,16 @@
         <canvas id="sky" aria-hidden="true"></canvas>
         <canvas id="pass" class="pass" aria-hidden="true"></canvas>
 
-        <nav class="beacons" aria-label="GitHub">
-            <a class="beacon" style="--c: #3ee0c8" href="https://github.com/igoramadas" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                    <path
-                        fill="currentColor"
-                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
-                    />
-                </svg>
-                @igoramadas
-                <span class="go" aria-hidden="true">↗</span>
-                <span class="note">Igor's personal tools, libraries and software toys.</span>
+        <nav class="beacons" aria-label="Links">
+            <a class="beacon" style="--c: #ffb02e" href="https://strautomator.com" target="_blank" rel="noopener noreferrer">
+                <span class="name">Strautomator</span>
+                <span class="tag">Turbocharge your Strava experience</span>
+                <span class="url">strautomator.com <span class="go" aria-hidden="true">↗</span></span>
             </a>
-            <a class="beacon" style="--c: #9aa8ff" href="https://github.com/ramadasnet" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                    <path
-                        fill="currentColor"
-                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
-                    />
-                </svg>
-                @ramadasnet
-                <span class="go" aria-hidden="true">↗</span>
-                <span class="note">
-                    <ul>
-                        <li>PlaylistSyncer <span class="app-info">Your music playlists, everywhere</span></li>
-                        <li>Strautomator <span class="app-info">Turbocharge your Strava experience</span></li>
-                        <li>LastWords.my <span class="soon">coming soon</span></li>
-                        <li>Saidatela <span class="soon">coming soon</span></li>
-                        <li>VHSFamily <span class="soon">coming soon</span></li>
-                    </ul>
-                </span>
-            </a>
-            <a class="beacon" style="--c: #7eb6ff" href="https://github.com/ramadasnet" target="_blank" rel="noopener noreferrer">
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                    <path
-                        fill="currentColor"
-                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"
-                    />
-                </svg>
-                @theoldstuff
-                <span class="go" aria-hidden="true">↗</span>
-                <span class="note">Interested? Feel free to take ownership.</span>
+            <a class="beacon" style="--c: #b9f46e" href="https://playlistsyncer.com" target="_blank" rel="noopener noreferrer">
+                <span class="name">PlaylistSyncer</span>
+                <span class="tag">Your music playlists, everywhere</span>
+                <span class="url">playlistsyncer.com <span class="go" aria-hidden="true">↗</span></span>
             </a>
         </nav>
 
@@ -385,6 +402,11 @@
                     </svg>
                     Ramadas.net
                 </a>
+                <div class="orgs" aria-label="GitHub">
+                    <a href="https://github.com/ramadasnet" target="_blank" rel="noopener noreferrer">@ramadasnet</a>
+                    <a href="https://github.com/igoramadas" target="_blank" rel="noopener noreferrer">@igoramadas</a>
+                    <a href="https://github.com/theoldstuff" target="_blank" rel="noopener noreferrer">@theoldstuff</a>
+                </div>
             </div>
 
             <p class="legal">
