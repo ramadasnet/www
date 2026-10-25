@@ -1,4 +1,6 @@
+.agents
 .git
+.github
 .wrangler
 .gitignore
 AGENTS.md
