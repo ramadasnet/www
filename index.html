@@ -44,22 +44,370 @@
                 overflow: hidden;
             }
 
+            /* Sized in JS to fixed pixels so viewport changes never stretch the bitmap */
             canvas {
                 position: fixed;
-                inset: 0;
-                width: 100%;
-                height: 100%;
+                top: 0;
+                left: 0;
                 display: block;
+                pointer-events: none;
             }
 
-            canvas.pass {
-                z-index: 0;
+            .lvh {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100vh;
+                height: 100lvh;
+                visibility: hidden;
                 pointer-events: none;
             }
 
             a {
                 color: inherit;
                 text-decoration: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .stars {
+                position: fixed;
+                inset: 0;
+                z-index: 0;
+                pointer-events: none;
+                contain: strict;
+                transition: opacity 0.4s ease;
+            }
+
+            .stars.is-resizing {
+                opacity: 0;
+                transition-duration: 0.16s;
+            }
+
+            .star {
+                --d: 9s;
+                --t: 0s;
+                --rgb: 255, 255, 255;
+                --s: 2px;
+                --f: 1;
+                --o: 1;
+                position: absolute;
+                width: 0;
+                height: 0;
+            }
+
+            /* Per-flare strength, re-rolled each cycle while the star is dim */
+            .star .flare {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: var(--o);
+                transform: scale(var(--f));
+            }
+
+            .star i {
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: block;
+                will-change: transform, opacity;
+                animation: var(--d) ease-in-out var(--t) infinite;
+            }
+
+            .star .core {
+                width: var(--s);
+                height: var(--s);
+                border-radius: 50%;
+                background: rgb(var(--rgb));
+                opacity: 0.5;
+                transform: translate(-50%, -50%);
+                animation-name: star-core-2;
+            }
+
+            .star .halo {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(var(--rgb), 0.5) 0, rgba(var(--rgb), 0.16) 22%, rgba(var(--rgb), 0) 68%);
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.4);
+                animation-name: star-halo-2;
+            }
+
+            .star .spike {
+                width: 34px;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(var(--rgb), 0), rgba(var(--rgb), 0.85) 50%, rgba(var(--rgb), 0));
+                opacity: 0;
+                transform: translate(-50%, -50%) scaleX(0.2);
+                animation-name: star-spike-2;
+            }
+
+            .star .cross {
+                position: absolute;
+                left: 0;
+                top: 0;
+                transform: rotate(90deg);
+            }
+
+            /* data-n picks 1, 2 or 3 flashes per flare; JS re-rolls it each cycle */
+            .star[data-n="1"] .core {
+                animation-name: star-core-1;
+            }
+
+            .star[data-n="1"] .halo {
+                animation-name: star-halo-1;
+            }
+
+            .star[data-n="1"] .spike {
+                animation-name: star-spike-1;
+            }
+
+            .star[data-n="3"] .core {
+                animation-name: star-core-3;
+            }
+
+            .star[data-n="3"] .halo {
+                animation-name: star-halo-3;
+            }
+
+            .star[data-n="3"] .spike {
+                animation-name: star-spike-3;
+            }
+
+            /* Long dim scintillation, then a brief flare of one to three atmospheric flashes */
+            @keyframes star-core-1 {
+                0%,
+                100% {
+                    opacity: 0.45;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                30% {
+                    opacity: 0.7;
+                }
+                52% {
+                    opacity: 0.38;
+                }
+                70% {
+                    opacity: 0.55;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                75% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.6);
+                }
+                86% {
+                    opacity: 0.5;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+
+            @keyframes star-core-2 {
+                0%,
+                100% {
+                    opacity: 0.45;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                30% {
+                    opacity: 0.7;
+                }
+                52% {
+                    opacity: 0.38;
+                }
+                70% {
+                    opacity: 0.55;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                74% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.5);
+                }
+                76% {
+                    opacity: 0.75;
+                    transform: translate(-50%, -50%) scale(1.3);
+                }
+                78.5% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.6);
+                }
+                88% {
+                    opacity: 0.5;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+
+            @keyframes star-core-3 {
+                0%,
+                100% {
+                    opacity: 0.45;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                30% {
+                    opacity: 0.7;
+                }
+                52% {
+                    opacity: 0.38;
+                }
+                70% {
+                    opacity: 0.55;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                73% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.5);
+                }
+                75% {
+                    opacity: 0.7;
+                    transform: translate(-50%, -50%) scale(1.25);
+                }
+                77.5% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.6);
+                }
+                79.5% {
+                    opacity: 0.72;
+                    transform: translate(-50%, -50%) scale(1.25);
+                }
+                82% {
+                    opacity: 0.95;
+                    transform: translate(-50%, -50%) scale(1.45);
+                }
+                90% {
+                    opacity: 0.5;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+
+            @keyframes star-halo-1 {
+                0%,
+                69%,
+                88%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.4);
+                }
+                75% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.05);
+                }
+            }
+
+            @keyframes star-halo-2 {
+                0%,
+                69%,
+                90%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.4);
+                }
+                74% {
+                    opacity: 0.85;
+                    transform: translate(-50%, -50%) scale(0.95);
+                }
+                76% {
+                    opacity: 0.55;
+                    transform: translate(-50%, -50%) scale(0.85);
+                }
+                78.5% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.05);
+                }
+            }
+
+            @keyframes star-halo-3 {
+                0%,
+                69%,
+                91%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.4);
+                }
+                73% {
+                    opacity: 0.85;
+                    transform: translate(-50%, -50%) scale(0.95);
+                }
+                75% {
+                    opacity: 0.5;
+                    transform: translate(-50%, -50%) scale(0.8);
+                }
+                77.5% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.05);
+                }
+                79.5% {
+                    opacity: 0.55;
+                    transform: translate(-50%, -50%) scale(0.85);
+                }
+                82% {
+                    opacity: 0.9;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+
+            @keyframes star-spike-1 {
+                0%,
+                70%,
+                86%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scaleX(0.2);
+                }
+                75.5% {
+                    opacity: 0.85;
+                    transform: translate(-50%, -50%) scaleX(1.1);
+                }
+            }
+
+            @keyframes star-spike-2 {
+                0%,
+                70%,
+                88%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scaleX(0.2);
+                }
+                74.5% {
+                    opacity: 0.7;
+                    transform: translate(-50%, -50%) scaleX(0.9);
+                }
+                76% {
+                    opacity: 0.4;
+                    transform: translate(-50%, -50%) scaleX(0.75);
+                }
+                79% {
+                    opacity: 0.85;
+                    transform: translate(-50%, -50%) scaleX(1.1);
+                }
+            }
+
+            @keyframes star-spike-3 {
+                0%,
+                70%,
+                90%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scaleX(0.2);
+                }
+                73.5% {
+                    opacity: 0.7;
+                    transform: translate(-50%, -50%) scaleX(0.9);
+                }
+                75% {
+                    opacity: 0.35;
+                    transform: translate(-50%, -50%) scaleX(0.7);
+                }
+                78% {
+                    opacity: 0.85;
+                    transform: translate(-50%, -50%) scaleX(1.1);
+                }
+                80% {
+                    opacity: 0.4;
+                    transform: translate(-50%, -50%) scaleX(0.75);
+                }
+                82.5% {
+                    opacity: 0.75;
+                    transform: translate(-50%, -50%) scaleX(1);
+                }
             }
 
             a:focus-visible {
@@ -395,15 +743,22 @@
             @media (prefers-reduced-motion: reduce) {
                 .beacons,
                 .beacon .go,
-                .note {
+                .note,
+                .stars {
                     transition: none;
+                }
+
+                .star i {
+                    animation: none;
+                    will-change: auto;
                 }
             }
         </style>
     </head>
     <body>
         <canvas id="sky" aria-hidden="true"></canvas>
-        <canvas id="pass" class="pass" aria-hidden="true"></canvas>
+        <div class="lvh" aria-hidden="true"></div>
+        <div class="stars" aria-hidden="true"></div>
 
         <nav class="beacons" aria-label="Links">
             <a class="beacon" style="--c: #ffb02e" href="https://strautomator.com" target="_blank" rel="noopener noreferrer">
@@ -457,6 +812,11 @@
             const canvas = document.getElementById("sky")
             const ctx = canvas.getContext("2d", {alpha: false})
             const beacons = document.querySelector(".beacons")
+            const bar = document.querySelector(".bar")
+            const starField = document.querySelector(".stars")
+            const lvh = document.querySelector(".lvh")
+            const coarse = window.matchMedia("(pointer: coarse)")
+            const painted = {w: 0, h: 0}
             let timer = 0
 
             const mulberry32 = (seed) => {
@@ -509,13 +869,13 @@
                 return Math.hypot(x - cx, y - cy) < radius - 8
             }
 
-            const layout = (w, h) => {
-                const barH = document.querySelector(".bar")?.offsetHeight ?? 76
+            const layout = (w, h, viewH = window.innerHeight) => {
+                const barH = bar.offsetHeight || 76
                 const left = w < 760 ? 16 : 28
                 const beaconW = Math.max(beacons.offsetWidth, 140)
                 const beaconH = beacons.offsetHeight || 72
                 const gap = 22
-                const floorTop = Math.max(16, h - barH - 36 - beaconH)
+                const floorTop = Math.max(16, Math.min(h, viewH) - barH - 36 - beaconH)
                 const natural = geometry(w, h)
                 let limb = -Infinity
                 for (let px = left; px <= left + beaconW; px += 6) {
@@ -551,20 +911,19 @@
                     world = cleared
                 }
 
-                return {world, spot: {left, top: Math.round(top)}}
+                return {world, box: boxFor(top), barH, spot: {left, top: Math.round(top)}}
             }
 
-            const paint = (viewW = window.innerWidth, viewH = window.innerHeight, quality = "full") => {
-                const dpr = quality === "draft" ? 1 : Math.min(window.devicePixelRatio || 1, 2)
-                const step = quality === "draft" ? 2 : 1
-                const w = window.innerWidth
-                const h = window.innerHeight
+            const paint = (w, h, world) => {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2)
                 const width = Math.floor(w * dpr)
                 const height = Math.floor(h * dpr)
                 canvas.width = width
                 canvas.height = height
+                canvas.style.width = `${w}px`
+                canvas.style.height = `${h}px`
 
-                const fitted = layout(viewW, viewH).world ?? {cx: -1e6, cy: -1e6, radius: 0}
+                const fitted = world ?? {cx: -1e6, cy: -1e6, radius: 0}
                 const cx = fitted.cx * dpr
                 const cy = fitted.cy * dpr
                 const radius = fitted.radius * dpr
@@ -572,18 +931,20 @@
 
                 const image = ctx.createImageData(width, height)
                 const {data} = image
+                // Opaque black base: transparent pixels on an alpha:false canvas render inconsistently across GPUs
+                new Uint32Array(data.buffer).fill(0xff000000)
                 const dot = (px, py, r, g, b) => plot(data, width, height, px, py, r, g, b)
 
                 const yStart = Math.max(0, Math.floor(cy - radius - 4))
                 const yEnd = Math.min(height, Math.ceil(cy + radius + 4))
 
-                for (let y = yStart; y < yEnd; y += step) {
+                for (let y = yStart; y < yEnd; y++) {
                     const span = radius * radius - (y - cy) ** 2
                     if (span <= 0) continue
                     const half = Math.sqrt(span)
                     const xStart = Math.max(0, Math.floor(cx - half - 3))
                     const xEnd = Math.min(width, Math.ceil(cx + half + 3))
-                    for (let x = xStart; x < xEnd; x += step) {
+                    for (let x = xStart; x < xEnd; x++) {
                         const outside = Math.hypot(x - cx, y - cy) - radius
                         if (outside > 2.5) continue
                         const roll = rng()
@@ -621,186 +982,111 @@
                 ctx.stroke()
             }
 
-            const beaconSpot = () => layout(window.innerWidth, window.innerHeight).spot
+            // 2 to 6 bright stars per visit, re-scattered with the same seed whenever the sky is repainted
+            const starSeed = (Date.now() ^ (Math.random() * 0x7fffffff)) >>> 0
+            const starCount = 2 + Math.floor(Math.random() * 5)
+            const tints = ["255, 255, 255", "206, 226, 255", "255, 238, 218", "184, 208, 255"]
 
-            const placeBeacons = () => {
-                const spot = beaconSpot()
+            // Squared roll: mostly modest flares, occasionally a big one
+            const rollFlashes = () => String(1 + Math.floor(Math.random() * 3))
+
+            const rollFlare = () => {
+                const strength = Math.random() ** 2
+                return {f: (0.45 + strength * 1.15).toFixed(2), o: (0.5 + strength * 0.5).toFixed(2)}
+            }
+
+            const scatterStars = (w, h, {world, box, barH}) => {
+                const rng = mulberry32(starSeed)
+                const margin = 24
+                const floor = h - barH - margin
+                const apart = Math.min(w, h) * 0.16
+                const spots = []
+                for (let tries = 0; spots.length < starCount && tries < 400; tries++) {
+                    const x = margin + rng() * (w - margin * 2)
+                    const y = margin + rng() * (floor - margin)
+                    const slack = tries > 250 ? 0.4 : 1
+                    if (world && Math.hypot(x - world.cx, y - world.cy) < world.radius + margin) continue
+                    if (x > box.left - margin && x < box.right + margin && y > box.top - margin && y < box.bottom + margin) continue
+                    if (spots.some((p) => Math.hypot(p.x - x, p.y - y) < apart * slack)) continue
+                    spots.push({x, y})
+                }
+
+                const html = spots.map(({x, y}) => {
+                    const duration = 7 + rng() * 9
+                    const flare = rollFlare()
+                    const style = [
+                        `left:${x.toFixed(1)}px`,
+                        `top:${y.toFixed(1)}px`,
+                        `--d:${duration.toFixed(2)}s`,
+                        `--t:${(-rng() * duration).toFixed(2)}s`,
+                        `--s:${(1.4 + rng() * 1).toFixed(2)}px`,
+                        `--rgb:${tints[Math.floor(rng() * tints.length)]}`,
+                        `--f:${flare.f}`,
+                        `--o:${flare.o}`
+                    ].join(";")
+                    return `<span class="star" data-n="${rollFlashes()}" style="${style}"><span class="flare"><i class="halo"></i><i class="spike"></i><b class="cross"><i class="spike"></i></b></span><i class="core"></i></span>`
+                })
+                starField.innerHTML = html.join("")
+            }
+
+            starField.addEventListener("animationiteration", (event) => {
+                if (!event.animationName.startsWith("star-core")) return
+                const star = event.target.parentElement
+                const flashes = rollFlashes()
+                // Swapping keyframes restarts every part of the star together at 0%, which matches the dim end of the cycle
+                if (flashes !== star.dataset.n) {
+                    star.style.setProperty("--t", "0s")
+                    star.dataset.n = flashes
+                }
+                const flare = rollFlare()
+                star.style.setProperty("--f", flare.f)
+                star.style.setProperty("--o", flare.o)
+            })
+
+            // On touch devices the browser toolbar changes innerHeight; keep the tallest height seen for this width so the sky never repaints for it
+            const skySize = () => {
+                const w = window.innerWidth
+                let h = Math.max(window.innerHeight, lvh.offsetHeight)
+                if (coarse.matches && w === painted.w) h = Math.max(h, painted.h)
+                return {w, h}
+            }
+
+            const place = (spot) => {
                 beacons.style.left = `${spot.left}px`
                 beacons.style.top = `${spot.top}px`
             }
 
-            const pass = () => {
-                if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-                const layer = document.getElementById("pass")
-                const lctx = layer.getContext("2d")
-                const rng = mulberry32(Date.now() ^ (Math.random() * 0x7fffffff))
-                const comets = []
-
-                const spawn = (comet, corner) => {
-                    const w = window.innerWidth
-                    const h = window.innerHeight
-                    const pick = corner ?? Math.floor(rng() * 4)
-                    const fromLeft = pick % 2 === 0
-                    const fromTop = pick < 2
-                    const speed = 28 + rng() * 18
-                    comet.vx = (fromLeft ? 1 : -1) * speed
-                    comet.y0 = fromTop ? -32 : h + 32
-                    const targetY = fromTop ? h * (0.42 + rng() * 0.4) : h * (0.1 + rng() * 0.38)
-                    comet.vy = ((targetY - comet.y0) / (w + 80)) * speed
-                    comet.tail = 90 + rng() * 70
-                    comet.x = fromLeft ? -40 : w + 40
-                    comet.y = comet.y0
-                    comet.bow = (rng() - 0.5) * 110
-                    const closing = rng() > 0.5
-                    comet.z0 = closing ? 0.38 : 2.05
-                    comet.z1 = closing ? 2.15 : 0.36
-                }
-
-                for (let i = 0; i < 3; i++) {
-                    const comet = {}
-                    spawn(comet, i)
-                    const hold = i * (3.2 + rng() * 2.4)
-                    comet.x -= comet.vx * hold
-                    comet.y0 -= comet.vy * hold
-                    comet.y = comet.y0
-                    comets.push(comet)
-                }
-
-                let last = performance.now()
-                let running = true
-
-                const frame = (now) => {
-                    if (!running) return
-                    const dt = Math.min(0.05, (now - last) / 1000)
-                    last = now
-                    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-                    const w = window.innerWidth
-                    const h = window.innerHeight
-                    const width = Math.floor(w * dpr)
-                    const height = Math.floor(h * dpr)
-                    if (layer.width !== width || layer.height !== height) {
-                        layer.width = width
-                        layer.height = height
-                    }
-                    lctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-                    lctx.clearRect(0, 0, w, h)
-                    lctx.lineCap = "round"
-
-                    for (const comet of comets) {
-                        comet.x += comet.vx * dt
-                        comet.y0 += comet.vy * dt
-                        const span = w + comet.tail * 2
-                        const travel = Math.max(0, Math.min(1, comet.vx > 0 ? (comet.x + comet.tail) / span : (w - comet.x + comet.tail) / span))
-                        const eased = travel * travel * (3 - 2 * travel)
-                        comet.y = comet.y0 + comet.bow * Math.sin(travel * Math.PI)
-                        const scale = comet.z0 + (comet.z1 - comet.z0) * eased
-                        const tail = comet.tail * scale
-                        const mag = Math.hypot(comet.vx, comet.vy) || 1
-                        const x2 = comet.x - (comet.vx / mag) * tail
-                        const y2 = comet.y - (comet.vy / mag) * tail * 0.35 - comet.bow * 0.08 * scale
-                        const head = 5.5 * scale
-                        const bright = 0.55 + scale * 0.35
-                        const streak = lctx.createLinearGradient(comet.x, comet.y, x2, y2)
-                        streak.addColorStop(0, `rgba(255,255,255,${bright})`)
-                        streak.addColorStop(0.14, `rgba(198,224,255,${bright * 0.42})`)
-                        streak.addColorStop(1, "rgba(198,224,255,0)")
-                        lctx.strokeStyle = streak
-                        lctx.lineWidth = 1.15 * scale
-                        lctx.beginPath()
-                        lctx.moveTo(comet.x, comet.y)
-                        lctx.lineTo(x2, y2)
-                        lctx.stroke()
-                        const glow = lctx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, head)
-                        glow.addColorStop(0, `rgba(255,255,255,${Math.min(1, bright)})`)
-                        glow.addColorStop(0.45, `rgba(186,216,255,${0.22 * scale})`)
-                        glow.addColorStop(1, "rgba(186,216,255,0)")
-                        lctx.fillStyle = glow
-                        lctx.beginPath()
-                        lctx.arc(comet.x, comet.y, head, 0, Math.PI * 2)
-                        lctx.fill()
-                        if ((comet.vx > 0 && comet.x > w + 20) || (comet.vx < 0 && comet.x < -20)) spawn(comet)
-                    }
-                    window.requestAnimationFrame(frame)
-                }
-
-                document.addEventListener("visibilitychange", () => {
-                    if (document.hidden) {
-                        running = false
-                        return
-                    }
-                    if (!running) {
-                        running = true
-                        last = performance.now()
-                        window.requestAnimationFrame(frame)
-                    }
-                })
-                window.requestAnimationFrame(frame)
-            }
-
-            const view = {w: window.innerWidth, h: window.innerHeight}
-            const target = {w: view.w, h: view.h}
-            let easing = false
-            let settle = false
-            const motionOk = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
-            const revealBeacons = () => {
-                const spot = beaconSpot()
-                beacons.classList.remove("is-resizing")
-                window.requestAnimationFrame(() => {
-                    beacons.style.left = `${spot.left}px`
-                    beacons.style.top = `${spot.top}px`
-                })
-            }
-
-            const easeWorld = () => {
-                view.w += (target.w - view.w) * 0.16
-                view.h += (target.h - view.h) * 0.16
-                const done = Math.abs(target.w - view.w) < 0.6 && Math.abs(target.h - view.h) < 0.6
-                if (done) {
-                    view.w = target.w
-                    view.h = target.h
-                }
-                paint(view.w, view.h, done ? "full" : "draft")
-                if (!done) {
-                    window.requestAnimationFrame(easeWorld)
-                    return
-                }
-                easing = false
-                if (settle) {
-                    settle = false
-                    revealBeacons()
-                }
+            const render = () => {
+                const {w, h} = skySize()
+                const fit = layout(w, h)
+                paint(w, h, fit.world)
+                place(fit.spot)
+                scatterStars(w, h, fit)
+                painted.w = w
+                painted.h = h
             }
 
             window.addEventListener("resize", () => {
-                target.w = window.innerWidth
-                target.h = window.innerHeight
-                beacons.classList.add("is-resizing")
-                window.clearTimeout(timer)
-                if (!motionOk) {
-                    timer = window.setTimeout(() => {
-                        view.w = target.w
-                        view.h = target.h
-                        paint()
-                        placeBeacons()
-                        beacons.classList.remove("is-resizing")
-                    }, 160)
+                const {w, h} = skySize()
+                if (w === painted.w && h === painted.h) {
+                    place(layout(w, h).spot)
                     return
                 }
-                if (!easing) {
-                    easing = true
-                    window.requestAnimationFrame(easeWorld)
-                }
+                beacons.classList.add("is-resizing")
+                starField.classList.add("is-resizing")
+                window.clearTimeout(timer)
                 timer = window.setTimeout(() => {
-                    if (easing) settle = true
-                    else revealBeacons()
-                }, 180)
+                    render()
+                    window.requestAnimationFrame(() => {
+                        beacons.classList.remove("is-resizing")
+                        starField.classList.remove("is-resizing")
+                    })
+                }, 160)
             })
 
-            paint()
-            placeBeacons()
+            render()
             window.requestAnimationFrame(() => beacons.classList.add("is-ready"))
-            pass()
+            document.fonts?.ready.then(() => place(layout(painted.w, painted.h).spot))
         </script>
     </body>
 </html>
