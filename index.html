@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <title>Ramadas.net</title>
         <meta name="description" content="Open software, power to the people." />
         <meta name="theme-color" content="#000000" />
@@ -241,7 +241,7 @@
                 justify-content: space-between;
                 gap: 24px;
                 min-height: 76px;
-                padding: 16px 22px;
+                padding: 16px 22px calc(16px + env(safe-area-inset-bottom, 0px));
                 background: #06101c;
                 border-top: 1px solid rgba(120, 168, 230, 0.16);
             }
@@ -342,30 +342,53 @@
                 transform: translateY(0);
             }
 
-            @media (max-width: 720px) {
+            @media (max-width: 760px) {
                 .bar {
                     flex-direction: column;
-                    align-items: flex-start;
+                    align-items: center;
+                    justify-content: center;
                     gap: 14px;
-                    padding: 16px;
+                    padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+                    text-align: center;
                 }
 
-                .dock {
-                    flex-direction: column;
-                    gap: 14px;
+                .orgs {
+                    justify-content: center;
+                    margin: 0;
                 }
 
                 .legal {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: baseline;
+                    justify-content: center;
+                    column-gap: 14px;
+                    letter-spacing: 0.04em;
                     white-space: normal;
+                }
+
+                .imprint {
+                    margin-left: 0;
+                }
+
+                .beacon {
+                    min-width: 0;
+                    width: min(300px, calc(100vw - 32px));
                 }
 
                 .imprint .card {
                     right: auto;
-                    left: 16px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(8px);
                 }
 
                 .imprint .card::before {
                     display: none;
+                }
+
+                .imprint:hover .card,
+                .imprint:focus .card {
+                    transform: translateX(-50%) translateY(0);
                 }
             }
 
@@ -492,7 +515,7 @@
                 const beaconW = Math.max(beacons.offsetWidth, 140)
                 const beaconH = beacons.offsetHeight || 72
                 const gap = 22
-                const floorTop = Math.max(16, h - barH - 18 - beaconH)
+                const floorTop = Math.max(16, h - barH - 36 - beaconH)
                 const natural = geometry(w, h)
                 let limb = -Infinity
                 for (let px = left; px <= left + beaconW; px += 6) {
